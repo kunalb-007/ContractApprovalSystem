@@ -62,14 +62,14 @@
         }
       }
     },
-    "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
+    "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj",
         "projectName": "ContractApprovalSystem.Infrastructure",
-        "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj",
+        "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\kunal\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\obj\\",
+        "outputPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\kunal\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -105,21 +105,17 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "BCrypt.Net-Next": {
-              "target": "Package",
-              "version": "[4.0.3, )"
-            },
             "Microsoft.EntityFrameworkCore": {
-              "target": "Package",
-              "version": "[8.0.8, )"
-            },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[8.0.8, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.8, )"
             }
@@ -169,8 +165,8 @@
               "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Core\\ContractApprovalSystem.Core.csproj": {
                 "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Core\\ContractApprovalSystem.Core.csproj"
               },
-              "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
-                "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj"
+              "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj"
               }
             }
           }
@@ -240,8 +236,8 @@
               "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Core\\ContractApprovalSystem.Core.csproj": {
                 "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Core\\ContractApprovalSystem.Core.csproj"
               },
-              "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
-                "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj"
+              "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Infrastructure\\ContractApprovalSystem.Infrastructure.csproj"
               },
               "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Services\\ContractApprovalSystem.Services.csproj": {
                 "projectPath": "C:\\Users\\kunal\\Desktop\\Dotnet Projects\\ContractApprovalSystem\\ContractApprovalSystem.Services\\ContractApprovalSystem.Services.csproj"

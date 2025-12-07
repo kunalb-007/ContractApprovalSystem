@@ -1,4 +1,4 @@
-C:\Users\kunal\Desktop\Dotnet projects\ContractApprovalSystem\ContractApprovalSystem.Services\bin\Debug\net8.0\ContractApprovalSystem.Services.deps.json
+C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\bin\Debug\net8.0\ContractApprovalSystem.Services.deps.json
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\bin\Debug\net8.0\ContractApprovalSystem.Services.dll
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\bin\Debug\net8.0\ContractApprovalSystem.Services.pdb
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\bin\Debug\net8.0\ContractApprovalSystem.Core.dll
@@ -11,8 +11,8 @@ C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSy
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ContractApprovalSystem.Services.AssemblyInfo.cs
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ContractApprovalSystem.Services.csproj.CoreCompileInputs.cache
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ContractApprovalSystem.Services.sourcelink.json
-C:\Users\kunal\Desktop\Dotnet projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\Contract.E49CF223.Up2Date
+C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\Contract.E49CF223.Up2Date
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ContractApprovalSystem.Services.dll
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\refint\ContractApprovalSystem.Services.dll
 C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ContractApprovalSystem.Services.pdb
-C:\Users\kunal\Desktop\Dotnet projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ref\ContractApprovalSystem.Services.dll
+C:\Users\kunal\Desktop\Dotnet Projects\ContractApprovalSystem\ContractApprovalSystem.Services\obj\Debug\net8.0\ref\ContractApprovalSystem.Services.dll
