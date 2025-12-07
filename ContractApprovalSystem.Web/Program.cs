@@ -7,25 +7,62 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get PORT
+// -------------------------
+// PORT for RENDER
+// -------------------------
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-// CRITICAL FIX: Get connection string and add it to Configuration
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                      ?? Environment.GetEnvironmentVariable("DATABASE_URL")
-                      ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// -------------------------
+// GET RAW CONNECTION STRING
+// -------------------------
+var rawConn = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+             ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+             ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrEmpty(rawConn))
 {
     Console.WriteLine("ERROR: No connection string found!");
-    throw new Exception("Database connection string not configured");
+    throw new Exception("Database connection string not configured.");
 }
 
-// Inject connection string into configuration builder
-builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
-Console.WriteLine($"✓ Connection string set: {connectionString.Substring(0, 40)}...");
+Console.WriteLine($"✓ Raw connection string received: {rawConn.Substring(0, 40)}...");
 
+// -------------------------
+// CONVERT IF URL FORMAT (Render gives: postgresql://...)
+// -------------------------
+string finalConn;
+
+if (rawConn.StartsWith("postgres://") || rawConn.StartsWith("postgresql://"))
+{
+    var uri = new Uri(rawConn);
+    var userInfo = uri.UserInfo.Split(':');
+
+    var username = userInfo[0];
+    var password = userInfo.Length > 1 ? userInfo[1] : "";
+
+    finalConn =
+        $"Host={uri.Host};" +
+        $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
+        $"Database={uri.AbsolutePath.TrimStart('/')};" +
+        $"Username={username};" +
+        $"Password={password};" +
+        $"SSL Mode=Require;Trust Server Certificate=true;";
+}
+else
+{
+    // Already EF format
+    finalConn = rawConn;
+}
+
+Console.WriteLine($"✓ Final EF connection string: {finalConn.Substring(0, 40)}...");
+
+// Inject into config so DbContext sees it
+builder.Configuration["ConnectionStrings:DefaultConnection"] = finalConn;
+
+// -------------------------
+// SERVICES
+// -------------------------
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession(options =>
@@ -36,38 +73,32 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
-// Now DbContext will read from Configuration which we just set
+// DB CONTEXT
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    Console.WriteLine($"DbContext using: {connStr?.Substring(0, 40) ?? "NULL"}...");
-
-    if (string.IsNullOrEmpty(connStr))
-    {
-        throw new Exception("Connection string is null in DbContext configuration!");
-    }
-
-    options.UseNpgsql(connStr);
+    Console.WriteLine($"DbContext using: {finalConn.Substring(0, 40)}...");
+    options.UseNpgsql(finalConn);
 });
 
+// Dependency Injections
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 
 var app = builder.Build();
 
-// Auto-run migrations
+// -------------------------
+// RUN MIGRATIONS ON START
+// -------------------------
 using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var connStrTest = dbContext.Database.GetConnectionString();
-        Console.WriteLine($"DbContext connection string: {connStrTest?.Substring(0, 40) ?? "NULL"}...");
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         Console.WriteLine("Running migrations...");
-        dbContext.Database.Migrate();
-        Console.WriteLine("✓ Migrations completed");
+        db.Database.Migrate();
+        Console.WriteLine("✓ Migrations completed successfully");
     }
     catch (Exception ex)
     {
@@ -75,6 +106,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// -------------------------
+// PIPELINE
+// -------------------------
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
