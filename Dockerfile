@@ -24,11 +24,12 @@ RUN dotnet publish "ContractApprovalSystem.Web.csproj" -c Release -o /app/publis
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 10000
 
 COPY --from=publish /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:8080
+# Use PORT environment variable from Render (defaults to 10000)
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT:-10000}
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 ENTRYPOINT ["dotnet", "ContractApprovalSystem.Web.dll"]
