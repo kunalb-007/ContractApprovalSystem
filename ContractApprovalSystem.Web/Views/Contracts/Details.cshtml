@@ -1,0 +1,75 @@
+@model ContractApprovalSystem.Services.DTOs.ContractDto
+
+@{
+    ViewData["Title"] = "Contract Details";
+    var userRole = ViewData["UserRole"]?.ToString() ?? string.Empty;
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h5>@Model.Title</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+            
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+            
+            <dt class="col-sm-3">Amount</dt>
+            <dd class="col-sm-9">@Model.Amount.ToString("C")</dd>
+            
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @{
+                    var badgeClass = Model.Status switch
+                    {
+                        "Draft" => "secondary",
+                        "PendingApproval" => "warning",
+                        "Approved" => "success",
+                        "Rejected" => "danger",
+                        _ => "secondary"
+                    };
+                }
+                <span class="badge bg-@badgeClass">@Model.Status</span>
+            </dd>
+            
+            <dt class="col-sm-3">Created By</dt>
+            <dd class="col-sm-9">@Model.CreatorName</dd>
+            
+            <dt class="col-sm-3">Created Date</dt>
+            <dd class="col-sm-9">@Model.CreatedDate.ToString("dd MMM yyyy")</dd>
+            
+            @if (Model.SubmittedDate.HasValue)
+            {
+                <dt class="col-sm-3">Submitted Date</dt>
+                <dd class="col-sm-9">@Model.SubmittedDate?.ToString("dd MMM yyyy")</dd>
+            }
+        </dl>
+    </div>
+    <div class="card-footer">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        
+        @if (Model.Status == "Draft" && !string.Equals(userRole, "Manager", StringComparison.OrdinalIgnoreCase))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+            
+            <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success" onclick="return confirm('Submit for approval?');">
+                    Submit
+                </button>
+            </form>
+            
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this contract?');">
+                    Delete
+                </button>
+            </form>
+        }
+    </div>
+</div>

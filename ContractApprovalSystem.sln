@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractApprovalSystem.Core", "ContractApprovalSystem.Core\ContractApprovalSystem.Core.csproj", "{DDB7C1EE-E753-49A3-A3C9-88DF5F26BB0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractApprovalSystem.Infrastructure", "ContractApprovalSystem.Infrastructure\ContractApprovalSystem.Infrastructure.csproj", "{C168C471-CE82-4A6F-BBB7-FC2792CDF30B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractApprovalSystem.Services", "ContractApprovalSystem.Services\ContractApprovalSystem.Services.csproj", "{98EB5411-AE97-482C-94FA-A7837973E723}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractApprovalSystem.Web", "ContractApprovalSystem.Web\ContractApprovalSystem.Web.csproj", "{AE60962D-9549-42BD-80AB-2F45C902D04B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DDB7C1EE-E753-49A3-A3C9-88DF5F26BB0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDB7C1EE-E753-49A3-A3C9-88DF5F26BB0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDB7C1EE-E753-49A3-A3C9-88DF5F26BB0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDB7C1EE-E753-49A3-A3C9-88DF5F26BB0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C168C471-CE82-4A6F-BBB7-FC2792CDF30B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C168C471-CE82-4A6F-BBB7-FC2792CDF30B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C168C471-CE82-4A6F-BBB7-FC2792CDF30B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C168C471-CE82-4A6F-BBB7-FC2792CDF30B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98EB5411-AE97-482C-94FA-A7837973E723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98EB5411-AE97-482C-94FA-A7837973E723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98EB5411-AE97-482C-94FA-A7837973E723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98EB5411-AE97-482C-94FA-A7837973E723}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE60962D-9549-42BD-80AB-2F45C902D04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE60962D-9549-42BD-80AB-2F45C902D04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE60962D-9549-42BD-80AB-2F45C902D04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE60962D-9549-42BD-80AB-2F45C902D04B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,65 @@
+@model IEnumerable<ContractApprovalSystem.Services.DTOs.ContractDto>
+
+@{
+    ViewData["Title"] = "Approval History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@ViewData["Title"]</h2>
+    <a asp-action="Index" class="btn btn-primary">
+        View Pending Approvals
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">
+        <h5 class="alert-heading">No approval history yet</h5>
+        <p class="mb-0">
+            You haven't reviewed any contracts. Go to 
+            <a asp-action="Index" class="alert-link">Pending Approvals</a> 
+            to start reviewing contracts submitted by users.
+        </p>
+    </div>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th class="text-end">Amount</th>
+                <th>Submitted By</th>
+                <th style="width: 120px;">Status</th>
+                <th>Reviewed Date</th>
+                <th style="width: 100px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            var badgeClass = c.Status == "Approved" ? "success" : "danger";
+            
+            <tr>
+                <td>@c.Title</td>
+                <td>@c.Description</td>
+                <td class="text-end">@c.Amount.ToString("C")</td>
+                <td>@c.CreatorName</td>
+                <td>
+                    <span class="badge bg-@badgeClass">@c.Status</span>
+                </td>
+                <td>@c.SubmittedDate?.ToString("dd MMM yyyy")</td>
+                <td>
+                    <a asp-controller="Contracts"
+                       asp-action="Details"
+                       asp-route-id="@c.Id"
+                       class="btn btn-sm btn-info">
+                        View
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
