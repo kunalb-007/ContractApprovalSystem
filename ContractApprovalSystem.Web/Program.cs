@@ -7,9 +7,29 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get PORT from environment
+// Get PORT
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+// CRITICAL: Get connection string BEFORE building anything
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+}
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new Exception("FATAL: No database connection string found!");
+}
+
+Console.WriteLine($"✓ Connection string captured: {connectionString.Substring(0, 40)}...");
 
 builder.Services.AddControllersWithViews();
 
@@ -21,23 +41,10 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
+// Add DbContext with the connection string captured above
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Read directly from environment variable
-    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
-    // Fallback to appsettings.json for local development
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    }
-
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new Exception("ERROR: No connection string found!");
-    }
-
-    Console.WriteLine($"✓ Connection string loaded: {connectionString.Substring(0, 30)}...");
+    Console.WriteLine($"Configuring DbContext with: {connectionString.Substring(0, 40)}...");
     options.UseNpgsql(connectionString);
 });
 
@@ -55,15 +62,13 @@ using (var scope = app.Services.CreateScope())
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Console.WriteLine("Running migrations...");
         dbContext.Database.Migrate();
-        Console.WriteLine("✓ Migrations completed");
+        Console.WriteLine("✓ Migrations completed successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"✗ Migration error: {ex.Message}");
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"✗ Inner error: {ex.InnerException.Message}");
-        }
+        Console.WriteLine($"✗ Migration failed: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        // Don't throw - let app start anyway
     }
 }
 
@@ -82,5 +87,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-Console.WriteLine($"✓ App listening on port {port}");
+Console.WriteLine($"✓ App started on port {port}");
 app.Run();
