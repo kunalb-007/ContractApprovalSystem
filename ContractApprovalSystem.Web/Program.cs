@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get PORT from environment (Render sets this to 10000)
+// Get PORT from environment
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
@@ -23,10 +23,10 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Try DATABASE_URL first (Render's automatic variable)
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+    // Read directly from environment variable
+    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
-    // If not found, try appsettings.json
+    // Fallback to appsettings.json for local development
     if (string.IsNullOrEmpty(connectionString))
     {
         connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -34,11 +34,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
     if (string.IsNullOrEmpty(connectionString))
     {
-        throw new Exception("No database connection string found! Check DATABASE_URL environment variable.");
+        throw new Exception("ERROR: No connection string found!");
     }
 
-    Console.WriteLine($"Using connection string: {connectionString.Substring(0, Math.Min(30, connectionString.Length))}...");
-
+    Console.WriteLine($"✓ Connection string loaded: {connectionString.Substring(0, 30)}...");
     options.UseNpgsql(connectionString);
 });
 
@@ -48,20 +47,23 @@ builder.Services.AddScoped<IContractService, ContractService>();
 
 var app = builder.Build();
 
-// Auto-run migrations on startup
+// Auto-run migrations
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        Console.WriteLine("Running database migrations...");
+        Console.WriteLine("Running migrations...");
         dbContext.Database.Migrate();
-        Console.WriteLine("✓ Database migrations applied successfully");
+        Console.WriteLine("✓ Migrations completed");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"✗ Migration failed: {ex.Message}");
-        Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
+        Console.WriteLine($"✗ Migration error: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"✗ Inner error: {ex.InnerException.Message}");
+        }
     }
 }
 
@@ -80,5 +82,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-Console.WriteLine($"✓ App started successfully on port {port}");
+Console.WriteLine($"✓ App listening on port {port}");
 app.Run();
