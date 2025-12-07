@@ -55,10 +55,10 @@ A contract management system where **Users** create and submit contracts, and **
 ### Manager Features
 
 #### Pending Approvals
-![Pending Approvals](screenshots/manager/img_1.png)
+![Pending Approvals](screenshots/manager/img_2.png)
 
 #### Approval History
-![Approval History](screenshots/manager/img_2.png)
+![Approval History](screenshots/manager/img_1.png)
 
 
 🚀 Quick Start
