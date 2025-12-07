@@ -18,26 +18,26 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Allow HTTP for Render
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    // Try DATABASE_URL first (Render's automatic variable)
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+    // If not found, try appsettings.json
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    }
 
     if (string.IsNullOrEmpty(connectionString))
     {
-        Console.WriteLine("ERROR: Connection string is empty!");
-        Console.WriteLine("Available env vars:");
-        foreach (var env in Environment.GetEnvironmentVariables().Keys)
-        {
-            Console.WriteLine($"  {env}");
-        }
+        throw new Exception("No database connection string found! Check DATABASE_URL environment variable.");
     }
-    else
-    {
-        Console.WriteLine($"Connection string found: {connectionString.Substring(0, Math.Min(50, connectionString.Length))}...");
-    }
+
+    Console.WriteLine($"Using connection string: {connectionString.Substring(0, Math.Min(30, connectionString.Length))}...");
 
     options.UseNpgsql(connectionString);
 });
@@ -56,11 +56,11 @@ using (var scope = app.Services.CreateScope())
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Console.WriteLine("Running database migrations...");
         dbContext.Database.Migrate();
-        Console.WriteLine("Database migrations applied successfully");
+        Console.WriteLine("✓ Database migrations applied successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Migration failed: {ex.Message}");
+        Console.WriteLine($"✗ Migration failed: {ex.Message}");
         Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
     }
 }
@@ -69,9 +69,6 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
-
-// Remove HTTPS redirect for Render (they handle SSL)
-// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -83,5 +80,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-Console.WriteLine($"Starting app on port {port}");
+Console.WriteLine($"✓ App started successfully on port {port}");
 app.Run();
