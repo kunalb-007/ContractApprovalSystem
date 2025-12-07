@@ -2,7 +2,7 @@
 
 A full-stack web application for managing contract workflows with role-based access control, built with ASP.NET Core MVC and PostgreSQL.
 
-🔗 **Live Demo:** [https://contractapproval-app.onrender.com](https://contractapproval-app.onrender.com)
+🔗 **Live Demo:** https://contractapprovalsystem.onrender.com
 
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-8.0-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-green) ![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
 
@@ -137,4 +137,4 @@ Open `https://localhost:5001`
 📧 kunalbhandare104@gmail.com | 💼 [LinkedIn](https://www.linkedin.com/in/kunal-bhandare/)
 ---
 
-**⭐ Live Demo:** [contractapproval-app.onrender.com](https://contractapproval-app.onrender.com)
+**⭐ Live Demo:** [https://contractapproval-app.onrender.com](https://contractapprovalsystem.onrender.com)
