@@ -11,25 +11,20 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-// CRITICAL: Get connection string BEFORE building anything
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+// CRITICAL FIX: Get connection string and add it to Configuration
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                      ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+                      ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+    Console.WriteLine("ERROR: No connection string found!");
+    throw new Exception("Database connection string not configured");
 }
 
-if (string.IsNullOrEmpty(connectionString))
-{
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new Exception("FATAL: No database connection string found!");
-}
-
-Console.WriteLine($"✓ Connection string captured: {connectionString.Substring(0, 40)}...");
+// Inject connection string into configuration builder
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+Console.WriteLine($"✓ Connection string set: {connectionString.Substring(0, 40)}...");
 
 builder.Services.AddControllersWithViews();
 
@@ -41,11 +36,18 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
-// Add DbContext with the connection string captured above
+// Now DbContext will read from Configuration which we just set
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    Console.WriteLine($"Configuring DbContext with: {connectionString.Substring(0, 40)}...");
-    options.UseNpgsql(connectionString);
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    Console.WriteLine($"DbContext using: {connStr?.Substring(0, 40) ?? "NULL"}...");
+
+    if (string.IsNullOrEmpty(connStr))
+    {
+        throw new Exception("Connection string is null in DbContext configuration!");
+    }
+
+    options.UseNpgsql(connStr);
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -60,15 +62,16 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var connStrTest = dbContext.Database.GetConnectionString();
+        Console.WriteLine($"DbContext connection string: {connStrTest?.Substring(0, 40) ?? "NULL"}...");
+
         Console.WriteLine("Running migrations...");
         dbContext.Database.Migrate();
-        Console.WriteLine("✓ Migrations completed successfully");
+        Console.WriteLine("✓ Migrations completed");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"✗ Migration failed: {ex.Message}");
-        Console.WriteLine($"Stack trace: {ex.StackTrace}");
-        // Don't throw - let app start anyway
+        Console.WriteLine($"✗ Migration error: {ex.Message}");
     }
 }
 
