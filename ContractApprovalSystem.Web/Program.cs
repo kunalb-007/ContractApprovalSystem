@@ -48,10 +48,11 @@ if (IsUrlStyle)
 {
     try
     {
-        // Manual parsing to handle special characters in password
+        // Remove "postgres://" prefix
         var connWithoutPrefix = rawConn.Substring(rawConn.IndexOf("://") + 3);
 
-        var atIndex = connWithoutPrefix.IndexOf('@');
+        // Split on the LAST @ to handle passwords with '@'
+        var atIndex = connWithoutPrefix.LastIndexOf('@');
         if (atIndex < 0)
             throw new Exception("Invalid connection string: missing '@' symbol.");
 
@@ -64,7 +65,7 @@ if (IsUrlStyle)
             throw new Exception("Invalid connection string: missing ':' between username and password.");
 
         var username = userInfo.Substring(0, colonIndex);
-        var password = userInfo.Substring(colonIndex + 1);
+        var password = userInfo.Substring(colonIndex + 1); // may contain @ or special chars
 
         // Host, port, database
         var slashIndex = hostDbPart.IndexOf('/');
