@@ -41,7 +41,6 @@ Console.WriteLine($"✓ Raw connection string detected: {SafePreview(rawConn)}")
 // -------------------------
 string finalConn;
 
-// Check if URL-style connection string
 bool IsUrlStyle = rawConn.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
                || rawConn.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
 
@@ -49,22 +48,39 @@ if (IsUrlStyle)
 {
     try
     {
-        var uri = new Uri(rawConn);
+        // Manual parsing to handle special characters in password
+        var connWithoutPrefix = rawConn.Substring(rawConn.IndexOf("://") + 3);
 
-        // Split username:password
-        var userInfo = uri.UserInfo.Split(':', 2); // max 2 parts
-        var username = userInfo[0];
-        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var atIndex = connWithoutPrefix.IndexOf('@');
+        if (atIndex < 0)
+            throw new Exception("Invalid connection string: missing '@' symbol.");
 
-        finalConn =
-            $"Host={uri.Host};" +
-            $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
-            $"Database={uri.AbsolutePath.TrimStart('/')};" +
-            $"Username={username};" +
-            $"Password={password};" +
-            $"SSL Mode=Require;Trust Server Certificate=true;";
+        var userInfo = connWithoutPrefix.Substring(0, atIndex); // username:password
+        var hostDbPart = connWithoutPrefix.Substring(atIndex + 1); // host:port/dbname
+
+        // Username and password
+        var colonIndex = userInfo.IndexOf(':');
+        if (colonIndex < 0)
+            throw new Exception("Invalid connection string: missing ':' between username and password.");
+
+        var username = userInfo.Substring(0, colonIndex);
+        var password = userInfo.Substring(colonIndex + 1);
+
+        // Host, port, database
+        var slashIndex = hostDbPart.IndexOf('/');
+        if (slashIndex < 0)
+            throw new Exception("Invalid connection string: missing '/' before database name.");
+
+        var hostPort = hostDbPart.Substring(0, slashIndex);
+        var database = hostDbPart.Substring(slashIndex + 1);
+
+        var portIndex = hostPort.IndexOf(':');
+        var host = portIndex > 0 ? hostPort.Substring(0, portIndex) : hostPort;
+        var portStr = portIndex > 0 ? hostPort.Substring(portIndex + 1) : "5432";
+
+        finalConn = $"Host={host};Port={portStr};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
     }
-    catch (UriFormatException ex)
+    catch (Exception ex)
     {
         Console.WriteLine($"✗ ERROR parsing URL-style connection string: {ex.Message}");
         throw;
