@@ -79,7 +79,15 @@ if (IsUrlStyle)
         var host = portIndex > 0 ? hostPort.Substring(0, portIndex) : hostPort;
         var portStr = portIndex > 0 ? hostPort.Substring(portIndex + 1) : "5432";
 
-        finalConn = $"Host={host};Port={portStr};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+        finalConn =
+            $"Host={host};" +
+            $"Port={portStr};" +
+            $"Database={database};" +
+            $"Username={username};" +
+            $"Password={password};" +
+            $"SSL Mode=Require;" +
+            $"Trust Server Certificate=true;" +
+            $"AddressFamily=InterNetwork;";
     }
     catch (Exception ex)
     {
