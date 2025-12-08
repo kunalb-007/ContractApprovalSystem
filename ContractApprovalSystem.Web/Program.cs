@@ -123,8 +123,25 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     Console.WriteLine($"DbContext using: {SafePreview(finalConn)}");
-    options.UseNpgsql(finalConn);
+
+    // Build Npgsql DataSource (lets us override DNS)
+    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(finalConn);
+
+    // Force IPv4 resolution (Render cannot connect via IPv6)
+    dataSourceBuilder.UseResolver(host =>
+    {
+        var ips = System.Net.Dns.GetHostAddresses(host);
+        return ips
+            .Where(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) // IPv4 only
+            .ToArray();
+    });
+
+    var dataSource = dataSourceBuilder.Build();
+
+    // Use DataSource instead of raw connection string
+    options.UseNpgsql(dataSource);
 });
+
 
 // Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
