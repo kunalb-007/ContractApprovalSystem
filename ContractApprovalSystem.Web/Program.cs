@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------------
-// PORT for RENDER
+// PORT for Render
 // -------------------------
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
@@ -16,30 +16,46 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 // -------------------------
 // GET RAW CONNECTION STRING
 // -------------------------
-var rawConn = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-             ?? Environment.GetEnvironmentVariable("DATABASE_URL")
-             ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var rawConn =
+    Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(rawConn))
 {
-    Console.WriteLine("ERROR: No connection string found!");
-    throw new Exception("Database connection string not configured.");
+    Console.WriteLine("ERROR: No database connection string found!");
+    throw new Exception("DATABASE_URL or DefaultConnection is missing.");
 }
 
-Console.WriteLine($"✓ Raw connection string received: {rawConn.Substring(0, 40)}...");
+// safe preview for logs
+string SafePreview(string s)
+{
+    if (string.IsNullOrEmpty(s)) return "EMPTY";
+
+    if (s.Length <= 15) return s; // short
+    return s[..15] + "...(masked)";
+}
+
+Console.WriteLine($"✓ Raw connection string detected: {SafePreview(rawConn)}");
 
 // -------------------------
-// CONVERT IF URL FORMAT (Render gives: postgresql://...)
+// CONVERT postgres:// URL → Npgsql format
 // -------------------------
 string finalConn;
 
-if (rawConn.StartsWith("postgres://") || rawConn.StartsWith("postgresql://"))
+bool IsUrlStyle = rawConn.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+               || rawConn.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
+
+if (IsUrlStyle)
 {
     var uri = new Uri(rawConn);
-    var userInfo = uri.UserInfo.Split(':');
 
-    var username = userInfo[0];
-    var password = userInfo.Length > 1 ? userInfo[1] : "";
+    // Split username:password — password may contain ':' or '@'
+    var userInfo = uri.UserInfo;
+    var splitIndex = userInfo.IndexOf(':');
+
+    var username = splitIndex > 0 ? userInfo[..splitIndex] : userInfo;
+    var password = splitIndex > 0 ? userInfo[(splitIndex + 1)..] : "";
 
     finalConn =
         $"Host={uri.Host};" +
@@ -51,13 +67,12 @@ if (rawConn.StartsWith("postgres://") || rawConn.StartsWith("postgresql://"))
 }
 else
 {
-    // Already EF format
-    finalConn = rawConn;
+    finalConn = rawConn; // already EF format
 }
 
-Console.WriteLine($"✓ Final EF connection string: {finalConn.Substring(0, 40)}...");
+Console.WriteLine($"✓ Final EF-ready connection string: {SafePreview(finalConn)}");
 
-// Inject into config so DbContext sees it
+// Inject into config for DbContext
 builder.Configuration["ConnectionStrings:DefaultConnection"] = finalConn;
 
 // -------------------------
@@ -73,14 +88,15 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
-// DB CONTEXT
+// DB Context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    Console.WriteLine($"DbContext using: {finalConn.Substring(0, 40)}...");
+    Console.WriteLine($"DbContext using: {SafePreview(finalConn)}");
+
     options.UseNpgsql(finalConn);
 });
 
-// Dependency Injections
+// DI
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContractService, ContractService>();
@@ -98,7 +114,7 @@ using (var scope = app.Services.CreateScope())
 
         Console.WriteLine("Running migrations...");
         db.Database.Migrate();
-        Console.WriteLine("✓ Migrations completed successfully");
+        Console.WriteLine("✓ Migrations completed");
     }
     catch (Exception ex)
     {
