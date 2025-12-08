@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ContractApprovalSystem.Web.Data;
+using ContractApprovalSystem.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
