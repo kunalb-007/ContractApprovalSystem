@@ -27,52 +27,58 @@ if (string.IsNullOrEmpty(rawConn))
     throw new Exception("DATABASE_URL or DefaultConnection is missing.");
 }
 
-// safe preview for logs
+// Safe preview for logs
 string SafePreview(string s)
 {
     if (string.IsNullOrEmpty(s)) return "EMPTY";
-
-    if (s.Length <= 15) return s; // short
-    return s[..15] + "...(masked)";
+    return s.Length <= 15 ? s : s[..15] + "...(masked)";
 }
 
 Console.WriteLine($"✓ Raw connection string detected: {SafePreview(rawConn)}");
 
 // -------------------------
-// CONVERT postgres:// URL → Npgsql format
+// CONVERT postgres:// URL → Npgsql format (only if URL-style)
 // -------------------------
 string finalConn;
 
+// Check if URL-style connection string
 bool IsUrlStyle = rawConn.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
                || rawConn.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
 
 if (IsUrlStyle)
 {
-    var uri = new Uri(rawConn);
+    try
+    {
+        var uri = new Uri(rawConn);
 
-    // Split username:password — password may contain ':' or '@'
-    var userInfo = uri.UserInfo;
-    var splitIndex = userInfo.IndexOf(':');
+        // Split username:password
+        var userInfo = uri.UserInfo.Split(':', 2); // max 2 parts
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
 
-    var username = splitIndex > 0 ? userInfo[..splitIndex] : userInfo;
-    var password = splitIndex > 0 ? userInfo[(splitIndex + 1)..] : "";
-
-    finalConn =
-        $"Host={uri.Host};" +
-        $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
-        $"Database={uri.AbsolutePath.TrimStart('/')};" +
-        $"Username={username};" +
-        $"Password={password};" +
-        $"SSL Mode=Require;Trust Server Certificate=true;";
+        finalConn =
+            $"Host={uri.Host};" +
+            $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
+            $"Database={uri.AbsolutePath.TrimStart('/')};" +
+            $"Username={username};" +
+            $"Password={password};" +
+            $"SSL Mode=Require;Trust Server Certificate=true;";
+    }
+    catch (UriFormatException ex)
+    {
+        Console.WriteLine($"✗ ERROR parsing URL-style connection string: {ex.Message}");
+        throw;
+    }
 }
 else
 {
-    finalConn = rawConn; // already EF format
+    // Already EF-format string → use as-is
+    finalConn = rawConn;
 }
 
 Console.WriteLine($"✓ Final EF-ready connection string: {SafePreview(finalConn)}");
 
-// Inject into config for DbContext
+// Inject into configuration
 builder.Configuration["ConnectionStrings:DefaultConnection"] = finalConn;
 
 // -------------------------
@@ -92,11 +98,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     Console.WriteLine($"DbContext using: {SafePreview(finalConn)}");
-
     options.UseNpgsql(finalConn);
 });
 
-// DI
+// Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContractService, ContractService>();
@@ -111,7 +116,6 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
         Console.WriteLine("Running migrations...");
         db.Database.Migrate();
         Console.WriteLine("✓ Migrations completed");
