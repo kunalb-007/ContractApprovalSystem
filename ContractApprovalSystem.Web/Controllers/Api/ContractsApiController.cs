@@ -1,154 +1,156 @@
 using ContractApprovalSystem.Services.DTOs;
 using ContractApprovalSystem.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+using ContractApprovalSystem.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ContractApprovalSystem.Web.Controllers.Api
 {
-    [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
     public class ContractsApiController : ControllerBase
     {
         private readonly IContractService _contractService;
-        
+
         public ContractsApiController(IContractService contractService)
         {
             _contractService = contractService;
         }
-        
-        private int GetCurrentUserId()
+
+        /// <summary>
+        /// Get all contracts for the current user
+        /// </summary>
+        /// <returns>List of contracts</returns>
+        [HttpGet("my-contracts")]
+        [ProducesResponseType(typeof(IEnumerable<ContractDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetMyContracts()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.Parse(userIdClaim ?? "0");
+            var userId = SessionHelper.GetUserId(HttpContext);
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var contracts = await _contractService.GetUserContractsAsync(userId.Value);
+            return Ok(contracts);
         }
-        
-        private string GetCurrentUserRole()
-        {
-            return User.FindFirst(ClaimTypes.Role)?.Value ?? "";
-        }
-        
-        // GET: api/contracts
-        [HttpGet]
-        public async Task<IActionResult> GetContracts()
-        {
-            try
-            {
-                var userId = GetCurrentUserId();
-                var role = GetCurrentUserRole();
-                
-                IEnumerable<ContractDto> contracts;
-                
-                if (role == "Manager")
-                {
-                    contracts = await _contractService.GetAllContractsAsync();
-                }
-                else
-                {
-                    contracts = await _contractService.GetUserContractsAsync(userId);
-                }
-                
-                return Ok(new { success = true, data = contracts });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-        }
-        
-        // GET: api/contracts/5
+
+        /// <summary>
+        /// Get contract by ID
+        /// </summary>
+        /// <param name="id">Contract ID</param>
+        /// <returns>Contract details</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ContractDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetContract(int id)
         {
-            try
-            {
-                var contract = await _contractService.GetContractByIdAsync(id);
-                
-                if (contract == null)
-                {
-                    return NotFound(new { success = false, message = "Contract not found" });
-                }
-                
-                return Ok(new { success = true, data = contract });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var contract = await _contractService.GetContractByIdAsync(id);
+            if (contract == null)
+                return NotFound(new { message = "Contract not found" });
+
+            return Ok(contract);
         }
-        
-        // POST: api/contracts
+
+        /// <summary>
+        /// Create a new contract
+        /// </summary>
+        /// <param name="model">Contract details</param>
+        /// <returns>Created contract</returns>
         [HttpPost]
-        public async Task<IActionResult> CreateContract([FromBody] CreateContractDto createDto)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> CreateContract([FromBody] CreateContractDto model)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = SessionHelper.GetUserId(HttpContext);
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
             try
             {
-                var userId = GetCurrentUserId();
-                var contract = await _contractService.CreateContractAsync(createDto, userId);
-                
-                return CreatedAtAction(
-                    nameof(GetContract), 
-                    new { id = contract.Id }, 
-                    new { success = true, data = contract, message = "Contract created successfully" }
-                );
+                await _contractService.CreateContractAsync(model, userId.Value);
+                return CreatedAtAction(nameof(GetMyContracts), new { message = "Contract created successfully" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
-        
-        // PUT: api/contracts/5
+
+        /// <summary>
+        /// Update an existing contract
+        /// </summary>
+        /// <param name="id">Contract ID</param>
+        /// <param name="model">Updated contract details</param>
+        /// <returns>Success message</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateContract(int id, [FromBody] CreateContractDto updateDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateContract(int id, [FromBody] CreateContractDto model)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var contract = await _contractService.UpdateContractAsync(id, updateDto);
-                return Ok(new { success = true, data = contract, message = "Contract updated successfully" });
+                await _contractService.UpdateContractAsync(id, model);
+                return Ok(new { message = "Contract updated successfully" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
-        
-        // DELETE: api/contracts/5
+
+        /// <summary>
+        /// Submit contract for approval
+        /// </summary>
+        /// <param name="id">Contract ID</param>
+        /// <returns>Success message</returns>
+        [HttpPost("{id}/submit")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> SubmitContract(int id)
+        {
+            var userId = SessionHelper.GetUserId(HttpContext);
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            try
+            {
+                await _contractService.SubmitForApprovalAsync(id, userId.Value);
+                return Ok(new { message = "Contract submitted for approval" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a contract (draft only)
+        /// </summary>
+        /// <param name="id">Contract ID</param>
+        /// <returns>Success message</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteContract(int id)
         {
             try
             {
-                var result = await _contractService.DeleteContractAsync(id);
-                
-                if (!result)
-                {
-                    return NotFound(new { success = false, message = "Contract not found" });
-                }
-                
-                return Ok(new { success = true, message = "Contract deleted successfully" });
+                await _contractService.DeleteContractAsync(id);
+                return Ok(new { message = "Contract deleted successfully" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-        }
-        
-        // POST: api/contracts/5/submit
-        [HttpPost("{id}/submit")]
-        public async Task<IActionResult> SubmitForApproval(int id)
-        {
-            try
-            {
-                var userId = GetCurrentUserId();
-                await _contractService.SubmitForApprovalAsync(id, userId);
-                
-                return Ok(new { success = true, message = "Contract submitted for approval" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
